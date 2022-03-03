@@ -18,6 +18,8 @@ class GenresSerializer(serializers.ModelSerializer):
 
 
 class TitlesSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+    genre = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Titles

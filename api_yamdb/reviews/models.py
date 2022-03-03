@@ -12,7 +12,7 @@ class Categories(models.Model):
     )
 
     def __str__(self):
-        return f'Категория {self.name}'
+        return f'{self.name}'
 
 
 class Genres(models.Model):
@@ -26,7 +26,7 @@ class Genres(models.Model):
     )
 
     def __str__(self):
-        return f'Жанр {self.name}'
+        return f'{self.name}'
 
 
 class Titles(models.Model):
@@ -38,6 +38,8 @@ class Titles(models.Model):
         verbose_name='Год издания произведения',
     )
     rating = models.IntegerField(
+        blank=True,
+        null=True,
         verbose_name='Рейтинг произведения',
     )
     description = models.TextField(
@@ -60,7 +62,7 @@ class Titles(models.Model):
     )
 
     def __str__(self):
-        return f'Произведение {self.name}'
+        return f'{self.name}'
 
 
 class GenresTitles(models.Model):
