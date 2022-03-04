@@ -78,13 +78,15 @@ class GenresTitles(models.Model):
 class Review(models.Model):
     title = models.ForeignKey(
         Titles,
-        on_delete=models.SECASCADET_NULL,
+        on_delete=models.CASCADE,
         related_name='title',
         verbose_name='название произведения',
     )
     text = models.TextField()
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews')
+        User, 
+        on_delete=models.CASCADE,
+        related_name='reviews')
     pub_date = models.DateTimeField('Дата публикации обзора', auto_now_add=True)
     score = models.PositiveSmallIntegerField(
         blank=True,
