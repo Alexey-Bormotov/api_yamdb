@@ -22,8 +22,7 @@ class TokenObtainPairSerializer(serializers.Serializer):
             )
         data = {}
         refresh = RefreshToken.for_user(user)
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
+        data['access_token'] = str(refresh.access_token)
         return data
 
 
