@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from reviews.models import Comment
 
 class Command(BaseCommand):
-    help = 'Импорт данных из csv в модель Review'
+    help = 'Импорт данных из csv в модель Comments'
 
     def add_arguments(self, parser):
         parser.add_argument('--path', type=str, help='Путь к файлу')

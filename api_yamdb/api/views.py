@@ -1,44 +1,43 @@
 from django.shortcuts import get_object_or_404
-
-from rest_framework import filters, viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Categories, Genres, Titles, Review
-from .mixins import ReviewCommentViewSet
+from .mixins import CategoryGenreTitleViewSet, ReviewCommentViewSet
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           TitlesSerializer,
+                          TitlesCreateUpdateSerializer,
                           CommentSerializer,
                           ReviewSerializer)
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class CategoriesViewSet(CategoryGenreTitleViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
-    # permission_classes = [IsAdminOrReadOnly,]
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+
+    lookup_field = 'slug'
 
 
-class GenresViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class GenresViewSet(CategoryGenreTitleViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
-    # permission_classes = [IsAdminOrReadOnly,]
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+
+    lookup_field = 'slug'
 
 
-class TitlesViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'patch', 'delete']
+class TitlesViewSet(CategoryGenreTitleViewSet):
+    http_method_names = ['get', 'post', 'patch', 'delete',]
+    # Как то можно добавить патч, а не переопределять атрибут?
     queryset = Titles.objects.all()
-    serializer_class = TitlesSerializer
-    # permission_classes = [IsAdminOrReadOnly,]
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name', 'year', 'titles_c__slug', 'titles_g__slug')
 
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'year', 'category', 'genre')
+    # Жанры и категории пока фильтрует только по id. Может быть нужен FilterSet?
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'partial_update']:
+            return TitlesCreateUpdateSerializer
+        return TitlesSerializer
 
 class ReviewViewSet(ReviewCommentViewSet):
     queryset = Review.objects.all()

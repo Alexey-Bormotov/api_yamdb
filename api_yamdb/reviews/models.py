@@ -46,6 +46,7 @@ class Titles(models.Model):
         verbose_name='Рейтинг произведения',
     )
     description = models.TextField(
+        null=True,
         verbose_name='Описание произведения',
     )
     genre = models.ManyToManyField(
@@ -79,7 +80,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
-        related_name='title',
+        related_name='reviews',
         verbose_name='название произведения',
     )
     text = models.TextField()
