@@ -1,8 +1,12 @@
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Categories, Genres, Titles, Review
-from .mixins import CategoryGenreTitleViewSet, ReviewCommentViewSet
+from .filters import TitlesFilter
+from .mixins import CategoryGenreViewSet, ReviewCommentViewSet
+from .permissions import AdminOrReadOnlyPermission
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           TitlesSerializer,
@@ -11,33 +15,30 @@ from .serializers import (CategoriesSerializer,
                           ReviewSerializer)
 
 
-class CategoriesViewSet(CategoryGenreTitleViewSet):
+class CategoriesViewSet(CategoryGenreViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
 
-    lookup_field = 'slug'
 
-
-class GenresViewSet(CategoryGenreTitleViewSet):
+class GenresViewSet(CategoryGenreViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
 
-    lookup_field = 'slug'
 
-
-class TitlesViewSet(CategoryGenreTitleViewSet):
+class TitlesViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete',]
-    # Как то можно добавить патч, а не переопределять атрибут?
-    queryset = Titles.objects.all()
-
+    permission_classes = AdminOrReadOnlyPermission,
+    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'category', 'genre')
-    # Жанры и категории пока фильтрует только по id. Может быть нужен FilterSet?
+    filterset_class = TitlesFilter
+
+    queryset = Titles.objects.all()
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
             return TitlesCreateUpdateSerializer
         return TitlesSerializer
+
 
 class ReviewViewSet(ReviewCommentViewSet):
     queryset = Review.objects.all()

@@ -92,15 +92,14 @@ class TitlesCreateUpdateSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
 
         category = validated_data.pop('category')
-        genres = validated_data.pop('genre')
-
         instance.category = validated_data.get('category', category)
 
-        instance.genre.clear()  # !!
         title = Titles.objects.get(pk=instance.id)
-        for genre in genres:
-            genre = Genres.objects.get(slug=genre.slug)
-            GenresTitles.objects.create(genre=genre, title=title)
+        if 'genre' in validated_data:
+            genres = validated_data.pop('genre')
+            for genre in genres:
+                genre = Genres.objects.get(slug=genre.slug)
+                GenresTitles.objects.create(genre=genre, title=title)
 
         instance.save()
 

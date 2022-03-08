@@ -21,6 +21,9 @@ class AdminOrReadOnlyPermission(permissions.BasePermission):
     message = 'Only Admin is allowed to access.'
 
     def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS or
-                request.user.role == 'admin' or
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if request.user.is_anonymous:
+            return False
+        return (request.user.role == 'admin' or
                 request.user.bio == 'superuser bio')
