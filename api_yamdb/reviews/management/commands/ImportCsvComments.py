@@ -2,10 +2,11 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Comment
+from users.models import User
+from reviews.models import Comment, Review
 
 class Command(BaseCommand):
-    help = 'Импорт данных из csv в модель Comments'
+    help = 'Импорт данных из csv в модель Comment'
 
     def add_arguments(self, parser):
         parser.add_argument('--path', type=str, help='Путь к файлу')
@@ -16,10 +17,12 @@ class Command(BaseCommand):
             reader = csv.reader(csv_file)
             next(reader)
             for row in reader:
+                review = Review.objects.get(pk=row[1])
+                author = User.objects.get(pk=row[3])
                 Comment.objects.create(
                     id=row[0],
-                    review_id=row[1],
+                    review=review,
                     text=row[2],
-                    author=row[3],
-                    pub_date=row[4],
+                    author=author,
+                    created=row[4],
                 )

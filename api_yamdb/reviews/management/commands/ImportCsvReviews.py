@@ -2,7 +2,8 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Review
+from users.models import User
+from reviews.models import Titles, Review
 
 class Command(BaseCommand):
     help = 'Импорт данных из csv в модель Review'
@@ -16,11 +17,13 @@ class Command(BaseCommand):
             reader = csv.reader(csv_file)
             next(reader)
             for row in reader:
+                title = Titles.objects.get(pk=row[1])
+                author = User.objects.get(pk=row[3])
                 Review.objects.create(
                     id=row[0],
-                    title_id=row[1],
+                    title=title,
                     text=row[2],
-                    author=row[3],
+                    author=author,
                     score=row[4],
                     pub_date=row[5],
                 )
