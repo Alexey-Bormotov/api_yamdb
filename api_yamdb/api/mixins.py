@@ -7,7 +7,7 @@ from .permissions import OnlyAuthorPermission, AdminOrReadOnlyPermission
 
 
 class CategoryGenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                            mixins.DestroyModelMixin, viewsets.GenericViewSet):
+                           mixins.DestroyModelMixin, viewsets.GenericViewSet):
     permission_classes = AdminOrReadOnlyPermission,
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter,)
@@ -18,6 +18,3 @@ class CategoryGenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
 class ReviewCommentViewSet(ModelViewSet):
     permission_classes = OnlyAuthorPermission,
     pagination_class = PageNumberPagination
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)

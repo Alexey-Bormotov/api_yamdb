@@ -4,24 +4,24 @@ from rest_framework.routers import DefaultRouter
 from .users import views
 from .views import (
     CategoriesViewSet, GenresViewSet, TitlesViewSet,
-    ReviewViewSet, CommentViewSet
-    )
+    ReviewViewSet, CommentViewSet)
 
 router_v1 = DefaultRouter()
 
 router_v1.register('users', views.UserViewSet, basename='users')
+
 router_v1.register('categories', CategoriesViewSet)
 router_v1.register('genres', GenresViewSet)
 router_v1.register('titles', TitlesViewSet)
 
-router_v1.register('reviews', ReviewViewSet,)
 router_v1.register(
-    r'reviews/(?P<review_id>\d+)/comments',CommentViewSet, basename='comment'
-)
+    r'titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='review')
 router_v1.register(
-    r'reviews/(?P<review_id>\d+)/comments/(?P<comment_id>\d+)',
-    CommentViewSet, basename='comment'
-)
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet,
+    basename='comment')
 
 auth_urls = [
     path(

@@ -2,10 +2,11 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from reviews.models import Categories, Titles
+from reviews.models import Category, Title
+
 
 class Command(BaseCommand):
-    help = 'Импорт данных из csv в модель Titles'
+    help = 'Импорт данных из csv в модель Title'
 
     def add_arguments(self, parser):
         parser.add_argument('--path', type=str, help='Путь к файлу')
@@ -16,8 +17,8 @@ class Command(BaseCommand):
             reader = csv.reader(csv_file)
             next(reader)
             for row in reader:
-                category = Categories.objects.get(pk=row[3])
-                Titles.objects.create(
+                category = Category.objects.get(pk=row[3])
+                Title.objects.create(
                     id=row[0],
                     name=row[1],
                     year=row[2],

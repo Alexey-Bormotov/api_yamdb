@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from users.models import User
 from reviews.models import Comment, Review
 
+
 class Command(BaseCommand):
     help = 'Импорт данных из csv в модель Comment'
 
@@ -24,5 +25,5 @@ class Command(BaseCommand):
                     review=review,
                     text=row[2],
                     author=author,
-                    created=row[4],
+                    pub_date=row[4],
                 )

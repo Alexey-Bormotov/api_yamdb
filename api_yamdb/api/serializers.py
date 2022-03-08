@@ -5,28 +5,27 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import (
-    Categories, Genres, Titles, GenresTitles,
-    Comment, Review,
-    )
+    Category, Genre, Title, GenreTitle,
+    Comment, Review)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(
-        validators=[UniqueValidator(queryset=Categories.objects.all())]
+        validators=[UniqueValidator(queryset=Category.objects.all())]
     )
 
     class Meta:
-        model = Categories
+        model = Category
         fields = ('name', 'slug')
 
 
 class GenresSerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(
-        validators=[UniqueValidator(queryset=Genres.objects.all())]
+        validators=[UniqueValidator(queryset=Genre.objects.all())]
     )
 
     class Meta:
-        model = Genres
+        model = Genre
         fields = ('name', 'slug')
 
 
@@ -41,18 +40,18 @@ class TitlesSerializer(serializers.ModelSerializer):
         return avg_rating
 
     class Meta:
-        model = Titles
+        model = Title
         fields = '__all__'
 
 
 class TitlesCreateUpdateSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
-        queryset=Categories.objects.all(),
+        queryset=Category.objects.all(),
         slug_field='slug',
         required=True
     )
     genre = serializers.SlugRelatedField(
-        queryset=Genres.objects.all(),
+        queryset=Genre.objects.all(),
         slug_field='slug',
         many=True,
         required=True
@@ -65,49 +64,63 @@ class TitlesCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_category(self, value):
-        if not Categories.objects.filter(slug=value.slug).exists():
-            raise serializers.ValidationError(f'Категории {value} не существует.')
+        if not Category.objects.filter(slug=value.slug).exists():
+            raise serializers.ValidationError(
+                f'Категории {value} не существует.')
         return value
 
     def validate_genre(self, value):
         for genre in value:
-            if not Genres.objects.filter(slug=genre.slug).exists():
-                raise serializers.ValidationError(f'Жанра {genre} не существует.')
+            if not Genre.objects.filter(slug=genre.slug).exists():
+                raise serializers.ValidationError(
+                    f'Жанра {genre} не существует.')
         return value
 
     def create(self, validated_data):
         category = validated_data.pop('category')
         genres = validated_data.pop('genre')
 
-        title = Titles.objects.create(**validated_data, category=category)
+        title = Title.objects.create(**validated_data, category=category)
 
         for genre in genres:
-            genre = Genres.objects.get(slug=genre.slug)
-            GenresTitles.objects.create(genre=genre, title=title)
+            genre = Genre.objects.get(slug=genre.slug)
+            GenreTitle.objects.create(genre=genre, title=title)
         return title
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
         instance.year = validated_data.get('year', instance.year)
-        instance.description = validated_data.get('description', instance.description)
+        instance.description = validated_data.get(
+            'description', instance.description)
 
         category = validated_data.pop('category')
         instance.category = validated_data.get('category', category)
 
-        title = Titles.objects.get(pk=instance.id)
+        title = Title.objects.get(pk=instance.id)
         if 'genre' in validated_data:
             genres = validated_data.pop('genre')
             for genre in genres:
-                genre = Genres.objects.get(slug=genre.slug)
-                GenresTitles.objects.create(genre=genre, title=title)
+                genre = Genre.objects.get(slug=genre.slug)
+                GenreTitle.objects.create(genre=genre, title=title)
 
         instance.save()
 
         return instance
 
     class Meta:
-        model = Titles
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category')
+        model = Title
+        fields = '__all__'
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True,
+    )
+
+    class Meta:
+        model = Review
+        exclude = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -115,26 +128,7 @@ class CommentSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True,
     )
+
     class Meta:
         model = Comment
-        fields = '__all__'
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, required=False,)
-
-    author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True,
-    )
-    score = serializers.SerializerMethodField()
-    class Meta:
-        model = Review
-        fields = '__all__'
-
-    def get_score_average(self, obj):
-        score = obj.score.all().aggregate(Avg('score')).get('score_avg')
-        # score = obj.objects.aggregate(Avg('score')).get('score_avg')
-        if score is None:
-            return 0
-        return int(score)
+        exclude = ('review',)
