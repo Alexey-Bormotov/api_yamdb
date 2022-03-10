@@ -63,7 +63,7 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 
-## 2. Примеры <a id=3></a>
+## 3. Примеры <a id=3></a>
 
 В этом разделе приведен один пример взаимодействия с API.
 

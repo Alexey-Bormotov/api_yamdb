@@ -8,11 +8,19 @@ from .permissions import OnlyAuthorPermission, AdminOrReadOnlyPermission
 
 class CategoryGenreViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                            mixins.DestroyModelMixin, viewsets.GenericViewSet):
+
     permission_classes = AdminOrReadOnlyPermission,
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+
+
+class TitleViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin, mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin, viewsets.GenericViewSet):
+
+    pass
 
 
 class ReviewCommentViewSet(ModelViewSet):

@@ -1,12 +1,11 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.exceptions import ValidationError
 
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
-from .mixins import CategoryGenreViewSet, ReviewCommentViewSet
+from .mixins import CategoryGenreViewSet, TitleViewSet, ReviewCommentViewSet
 from .permissions import AdminOrReadOnlyPermission
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
@@ -26,19 +25,25 @@ class GenresViewSet(CategoryGenreViewSet):
     serializer_class = GenresSerializer
 
 
-class TitlesViewSet(ModelViewSet):
-    http_method_names = ['get', 'post', 'patch', 'delete']
+class TitlesViewSet(TitleViewSet):
     permission_classes = AdminOrReadOnlyPermission,
     pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitlesFilter
 
-    queryset = Title.objects.all()
-
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
             return TitlesCreateUpdateSerializer
+
         return TitlesSerializer
+
+    def get_queryset(self):
+        queryset = Title.objects.all()
+
+        if self.action in ['list', 'retrieve']:
+            queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+
+        return queryset
 
 
 class ReviewViewSet(ReviewCommentViewSet):
@@ -52,16 +57,11 @@ class ReviewViewSet(ReviewCommentViewSet):
 
     def get_queryset(self):
         title = self.check_title()
-        new_queryset = title.reviews.all()
+        queryset = title.reviews.all()
 
-        return new_queryset
+        return queryset
 
     def perform_create(self, serializer):
-        if Review.objects.filter(
-            author=self.request.user,
-            title=self.check_title()
-        ).exists():
-            raise ValidationError('Нельзя оставить больше одного ревью.')
         serializer.save(author=self.request.user, title=self.check_title())
 
 

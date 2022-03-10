@@ -6,7 +6,7 @@ from reviews.models import Title
 class TitlesFilter(rest_framework.FilterSet):
     name = rest_framework.CharFilter(
         field_name='name',
-        lookup_expr='contains')
+        lookup_expr='icontains')
     year = rest_framework.NumberFilter(
         field_name='year',
         lookup_expr='contains')

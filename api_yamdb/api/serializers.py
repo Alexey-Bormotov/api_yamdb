@@ -1,6 +1,5 @@
 import datetime as dt
 
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -32,12 +31,7 @@ class GenresSerializer(serializers.ModelSerializer):
 class TitlesSerializer(serializers.ModelSerializer):
     category = CategoriesSerializer(many=False)
     genre = GenresSerializer(many=True)
-    rating = serializers.SerializerMethodField()
-
-    def get_rating(self, obj):
-        avg_rating = obj.reviews.all().aggregate(Avg('score'))['score__avg']
-
-        return avg_rating
+    rating = serializers.IntegerField()
 
     class Meta:
         model = Title
@@ -61,19 +55,6 @@ class TitlesCreateUpdateSerializer(serializers.ModelSerializer):
         year = dt.date.today().year
         if value > year:
             raise serializers.ValidationError('Проверьте год издания.')
-        return value
-
-    def validate_category(self, value):
-        if not Category.objects.filter(slug=value.slug).exists():
-            raise serializers.ValidationError(
-                f'Категории {value} не существует.')
-        return value
-
-    def validate_genre(self, value):
-        for genre in value:
-            if not Genre.objects.filter(slug=genre.slug).exists():
-                raise serializers.ValidationError(
-                    f'Жанра {genre} не существует.')
         return value
 
     def create(self, validated_data):
@@ -117,6 +98,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True,
     )
+
+    def create(self, validated_data):
+        if Review.objects.filter(
+            author=self.context['request'].user,
+            title=validated_data.get('title')
+        ).exists():
+            raise serializers.ValidationError(
+                'Нельзя оставить больше одного обзора.')
+
+        review = Review.objects.create(**validated_data,)
+
+        return review
 
     class Meta:
         model = Review
