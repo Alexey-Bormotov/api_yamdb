@@ -15,7 +15,7 @@ class OnlyAuthorPermission(permissions.BasePermission):
         if request.user.is_anonymous:
             return False
         return (request.user.is_staff
-                or request.user.bio == 'superuser bio'
+                or request.user.is_superuser
                 or obj.author == request.user)
 
 
@@ -24,7 +24,7 @@ class IsAdminPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (request.user.role == 'admin'
-                or request.user.bio == 'superuser bio')
+                or request.user.is_superuser)
 
 
 class AdminOrReadOnlyPermission(permissions.BasePermission):
@@ -36,4 +36,4 @@ class AdminOrReadOnlyPermission(permissions.BasePermission):
         if request.user.is_anonymous:
             return False
         return (request.user.role == 'admin'
-                or request.user.bio == 'superuser bio')
+                or request.user.is_superuser)
