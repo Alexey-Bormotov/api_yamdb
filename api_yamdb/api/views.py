@@ -1,18 +1,74 @@
-from rest_framework.pagination import PageNumberPagination
+import secrets
+
+from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.generics import CreateAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.views import TokenViewBase
 
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
 from .mixins import CategoryGenreViewSet, TitleViewSet, ReviewCommentViewSet
-from .permissions import AdminOrReadOnlyPermission
+from .permissions import AdminOrReadOnlyPermission, IsAdminPermission
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           TitlesSerializer,
                           TitlesCreateUpdateSerializer,
                           CommentSerializer,
-                          ReviewSerializer)
+                          ReviewSerializer,
+                          TokenObtainPairSerializer,
+                          UserSerializer,
+                          UserSignUpSerializer)
+
+
+class TokenObtainPairView(TokenViewBase):
+    serializer_class = TokenObtainPairSerializer
+
+
+class UserSignUpView(CreateAPIView):
+    serializer_class = UserSignUpSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = secrets.token_urlsafe()
+        serializer.save(token=token)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserViewSet(ModelViewSet):
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAuthenticated, IsAdminPermission)
+    lookup_field = 'username'
+    search_fields = ('username',)
+
+    @action(
+        ['GET', 'PATCH'], permission_classes=(IsAuthenticated,),
+        detail=False, url_path='me'
+    )
+    def me_user(self, request):
+        if not request.data:
+            serializer = self.serializer_class(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.serializer_class(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        if request.user.role == 'admin':
+            serializer.update(request.user, serializer.validated_data)
+        else:
+            serializer.nonadmin_update(
+                request.user, serializer.validated_data
+            )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoriesViewSet(CategoryGenreViewSet):
