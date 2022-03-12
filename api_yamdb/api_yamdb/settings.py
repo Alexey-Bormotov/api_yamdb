@@ -129,3 +129,4 @@ SIMPLE_JWT = {
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+FROM_EMAIL = os.getenv('FROM_EMAIL', 'info@mail.com')
