@@ -56,3 +56,7 @@ class User(AbstractUser):
         else:
             self.role = self.USER
         return super(User, self).save(*args, **kwargs)
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin'

@@ -1,6 +1,7 @@
 import secrets
 
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.views import TokenViewBase
 
+from api_yamdb import settings
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
 from .mixins import CategoryGenreViewSet, TitleViewSet, ReviewCommentViewSet
@@ -39,7 +41,19 @@ class UserSignUpView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = secrets.token_urlsafe()
-        serializer.save(token=token)
+        user, _ = get_user_model().objects.get_or_create(
+            username=serializer.data.get('username'),
+            email=serializer.data.get('email'),
+            confirmation_code=token
+        )
+        message = (f'Для подтверждения регистрации на сайте перейдите, '
+                   f'пожалуйста, по ссылке {settings.HOST_NAME}?code={token}')
+        send_mail(
+            subject='Регистрация на сайте',
+            message=message,
+            from_email=settings.FROM_EMAIL,
+            recipient_list=[user.email]
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

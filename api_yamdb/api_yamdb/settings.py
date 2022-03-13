@@ -128,5 +128,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+HOST_NAME = os.getenv('HOST_NAME', 'mysite.com')
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 FROM_EMAIL = os.getenv('FROM_EMAIL', 'info@mail.com')

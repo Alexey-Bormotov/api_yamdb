@@ -2,13 +2,11 @@ import datetime as dt
 import os
 
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api_yamdb import settings
 from reviews.models import (
     Category, Genre, Title, GenreTitle,
     Comment, Review)
@@ -44,24 +42,6 @@ class UserSignUpSerializer(serializers.ModelSerializer):
                 'Некорректное имя пользователя'
             )
         return attrs
-
-    def create(self, validated_data):
-        token = validated_data.get('token')
-        user, _ = get_user_model().objects.get_or_create(
-            username=validated_data.get('username'),
-            email=validated_data.get('email'),
-            confirmation_code=token
-        )
-        host_name = os.getenv("HOST_NAME", "mysite.com/")
-        message = (f'Для подтверждения регистрации на сайте перейдите, '
-                   f'пожалуйста, по ссылке {host_name}?code={token}')
-        send_mail(
-            subject='Регистрация на сайте',
-            message=message,
-            from_email=settings.FROM_EMAIL,
-            recipient_list=[user.email]
-        )
-        return validated_data
 
 
 class UserSerializer(serializers.ModelSerializer):
