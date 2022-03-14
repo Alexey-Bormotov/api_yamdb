@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class OnlyAuthorPermission(permissions.BasePermission):
+class IsAuthorPermission(permissions.BasePermission):
     message = (
         'Only Author, Moderator, Admin or Superuser is allowed to access.')
 
@@ -20,12 +20,13 @@ class IsAdminPermission(permissions.BasePermission):
     message = 'Only Admin or Superuser is allowed to access.'
 
     def has_permission(self, request, view):
+        if request.user.is_anonymous:
+            return False
         return request.user.is_admin or request.user.is_superuser
 
 
-class AdminOrReadOnlyPermission(permissions.BasePermission):
+class IsReadOnlyPermission(permissions.BasePermission):
     message = 'Only Admin or Superuser is allowed to access.'
 
     def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or request.user.is_superuser)
+        return request.method in permissions.SAFE_METHODS

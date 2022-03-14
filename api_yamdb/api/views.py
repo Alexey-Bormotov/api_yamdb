@@ -8,7 +8,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -18,7 +17,7 @@ from api_yamdb import settings
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
 from .mixins import CategoryGenreViewSet, TitleViewSet, ReviewCommentViewSet
-from .permissions import AdminOrReadOnlyPermission, IsAdminPermission
+from .permissions import IsAdminPermission
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           TitlesSerializer,
@@ -96,8 +95,6 @@ class GenresViewSet(CategoryGenreViewSet):
 
 
 class TitlesViewSet(TitleViewSet):
-    permission_classes = AdminOrReadOnlyPermission,
-    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitlesFilter
 
