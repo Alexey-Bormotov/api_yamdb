@@ -20,9 +20,8 @@ class IsAdminPermission(permissions.BasePermission):
     message = 'Only Admin or Superuser is allowed to access.'
 
     def has_permission(self, request, view):
-        if request.user.is_anonymous:
-            return False
-        return request.user.is_admin or request.user.is_superuser
+        return (request.user.is_authenticated
+                and (request.user.is_admin or request.user.is_superuser))
 
 
 class IsReadOnlyPermission(permissions.BasePermission):

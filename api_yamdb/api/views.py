@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -16,8 +17,10 @@ from rest_framework_simplejwt.views import TokenViewBase
 from api_yamdb import settings
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
-from .mixins import CategoryGenreViewSet, TitleViewSet, ReviewCommentViewSet
-from .permissions import IsAdminPermission
+from .mixins import CategoryGenreViewSet, TitleReviewCommentViewSet
+from .permissions import (IsAuthorPermission,
+                          IsAdminPermission,
+                          IsReadOnlyPermission)
 from .serializers import (CategoriesSerializer,
                           GenresSerializer,
                           TitlesSerializer,
@@ -94,7 +97,9 @@ class GenresViewSet(CategoryGenreViewSet):
     serializer_class = GenresSerializer
 
 
-class TitlesViewSet(TitleViewSet):
+class TitlesViewSet(TitleReviewCommentViewSet):
+    permission_classes = [IsReadOnlyPermission | IsAdminPermission]
+    pagination_class = PageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitlesFilter
 
@@ -113,7 +118,9 @@ class TitlesViewSet(TitleViewSet):
         return queryset
 
 
-class ReviewViewSet(ReviewCommentViewSet):
+class ReviewViewSet(TitleReviewCommentViewSet):
+    permission_classes = IsAuthorPermission,
+    pagination_class = PageNumberPagination
     serializer_class = ReviewSerializer
 
     def check_title(self):
@@ -132,7 +139,9 @@ class ReviewViewSet(ReviewCommentViewSet):
         serializer.save(author=self.request.user, title=self.check_title())
 
 
-class CommentViewSet(ReviewCommentViewSet):
+class CommentViewSet(TitleReviewCommentViewSet):
+    permission_classes = IsAuthorPermission,
+    pagination_class = PageNumberPagination
     serializer_class = CommentSerializer
 
     def get_queryset(self):
